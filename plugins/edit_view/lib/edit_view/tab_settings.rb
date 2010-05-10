@@ -11,10 +11,10 @@ module Redcar
       def initialize
         @tab_widths =
             {DEFAULT_SETTING_NAME => DEFAULT_TAB_WIDTH}.merge(
-              EditView.storage['tab_widths'])
+              EditView.storage['tab_widths'] || {})
         @softnesses =
             {DEFAULT_SETTING_NAME => DEFAULT_SOFTNESS}.merge(
-              EditView.storage['softness'])
+              EditView.storage['softness'] || {})
         @show_invisibles = !!EditView.storage['show_invisibles']
       end
       
