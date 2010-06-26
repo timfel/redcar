@@ -9,17 +9,17 @@ end
 
 module Redcar
   class Installer
-  	def initialize
-  	  if ENV['http_proxy']
-  	    proxy = URI.parse(ENV['http_proxy'])
+    def initialize
+      if ENV['http_proxy']
+        proxy = URI.parse(ENV['http_proxy'])
         @connection = Net::HTTP::Proxy(proxy.host, proxy.port, proxy.user, proxy.password)
       else
-  	    @connection = Net::HTTP
+        @connection = Net::HTTP
       end
-  	end
-  	
+    end
+    
     def associate_with_any_right_click
-      raise 'this is currently only for windows' unless Redcar.platform == :windows  	  
+      raise 'this is currently only for windows' unless Redcar.platform == :windows      
       require 'rbconfig'
       require 'win32/registry'
       # associate it with the current rubyw.exe
@@ -38,19 +38,19 @@ module Redcar
       puts 'Associated.'
     end
 
-  	def install
-  	  unless File.writable?(JRUBY_JAR_DIR)
-  	    puts "Don't have permission to write to #{JRUBY_JAR_DIR}. Please rerun with sudo."
-  	    exit 1
-  	  end
-  	  puts "Downloading >10MB of jar files. This may take a while."
-  	  grab_jruby
-  	  grab_common_jars
-  	  grab_platform_dependencies
-  	  grab_redcar_jars
-  	  puts
-  	  puts "Done! You're ready to run Redcar."
-  	end
+    def install
+      unless File.writable?(JRUBY_JAR_DIR)
+        puts "Don't have permission to write to #{JRUBY_JAR_DIR}. Please rerun with sudo."
+        exit 1
+      end
+      puts "Downloading >10MB of jar files. This may take a while."
+      grab_jruby
+      grab_common_jars
+      grab_platform_dependencies
+      grab_redcar_jars
+      puts
+      puts "Done! You're ready to run Redcar."
+    end
   
     def plugins_dir
       File.expand_path(File.join(File.dirname(__FILE__), %w(.. .. plugins)))
@@ -146,8 +146,8 @@ module Redcar
       end
       
       if path =~ /.*\.zip$/
-      	puts '  unzipping  ' + path
-      	Installer.unzip_file(path)
+        puts '  unzipping  ' + path
+        Installer.unzip_file(path)
       end
 
       puts "  downloaded #{uri}\n          to #{path}\n"
@@ -160,7 +160,7 @@ module Redcar
         Zip::ZipFile.open(source) do |zipfile|
           zipfile.entries.each do |entry|
             FileUtils.mkdir_p(File.dirname(entry.name))
-          	begin
+            begin
               entry.extract
             rescue Zip::ZipDestinationFileExistsError
             end
