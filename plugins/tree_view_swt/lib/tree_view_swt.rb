@@ -13,11 +13,21 @@ module Redcar
     
     def initialize(composite, model)
       @composite, @model = composite, model
-      tree_style = Swt::SWT::VIRTUAL | Swt::SWT::MULTI
+      tree_style = Swt::SWT::MULTI
       @viewer = JFace::Viewers::TreeViewer.new(@composite, tree_style)
+      grid_data = Swt::Layout::GridData.new
+      grid_data.grabExcessHorizontalSpace = true
+      grid_data.horizontalAlignment = Swt::Layout::GridData::FILL
+      grid_data.grabExcessVerticalSpace = true
+      grid_data.verticalAlignment = Swt::Layout::GridData::FILL
+      @viewer.get_tree.set_layout_data(grid_data)
+      @composite.layout
+      JFace::Viewers::ColumnViewerToolTipSupport.enableFor(@viewer)
       @viewer.set_content_provider(TreeMirrorContentProvider.new)
-      @viewer.set_input(@model.tree_mirror)
+      #@viewer.getTree.setLinesVisible(true)
+	    #@viewer.getTree.setHeaderVisible(true)
       @viewer.set_label_provider(TreeMirrorLabelProvider.new)
+      @viewer.set_input(@model.tree_mirror)
       
       if @model.tree_controller
         @viewer.add_tree_listener(@viewer.getControl, TreeListener.new)
@@ -362,6 +372,23 @@ module Redcar
 
       def dispose
       end
+      
+      #def getToolTipShift(*_)
+      #  Swt::Graphics::Point.new(5, 5)
+      #end
+      #
+      #def getToolTipText(tree_node)
+      #  p [:getToolTipText, tree_node]
+      #  tree_node.tooltip_text
+      #end
+      #
+      #def getToolTipDisplayDelayTime(*_)
+      #  1000
+      #end
+      #
+      #def getToolTipTimeDisplayed(*_)
+      #  5000
+      #end
       
       private
       

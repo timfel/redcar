@@ -7,7 +7,7 @@ module Redcar
     module Mirror
       include Redcar::Observable
       
-      # Return the title of the tree.
+      # Return the title of the tree. It should NOT change.
       #
       # @return [String]
       def title
@@ -107,6 +107,13 @@ module Redcar
         # @return [Boolean]
         def leaf?
           true
+        end
+        
+        # The text for the tooltip, or nil if no tooltip
+        #
+        # @return [String or nil]
+        def tooltip_text
+          nil
         end
       end
     end

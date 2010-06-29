@@ -19,6 +19,10 @@ module Redcar
         @changed = true
       end
       
+      def title
+        File.basename(@path) + "/"
+      end
+      
       # Does the directory exist?
       def exists?
         File.exist?(@path) && File.directory?(@path)
@@ -123,6 +127,11 @@ module Redcar
         
         def children
           Node.create_all_from_path(@path)
+        end
+        
+        def tooltip_text
+          p [:tooltip_text, File.basename(@path)]
+          File.basename(@path)
         end
       end
     end

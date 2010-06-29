@@ -1,4 +1,4 @@
-REDCAR_VERSION = "0.3.7.1"
+REDCAR_VERSION = "0.3.8dev"
 
 require 'rubygems'
 require 'fileutils'
@@ -312,10 +312,20 @@ namespace :redcar do
       command = bin + " " + task.name
       namespace[bits.shift] = {:command => command, :desc => task.comment}
     end
-    p runnables
     File.open(".redcar/runnables", "w") do |f|
       f.puts runnables.to_yaml
     end
+  end
+  
+  task :sample do
+    puts "out1"
+sleep 1
+$stderr.puts "err1"
+sleep 1
+puts "out2"
+sleep 1
+$stderr.puts "err2"
+sleep 1
   end
 end
 
