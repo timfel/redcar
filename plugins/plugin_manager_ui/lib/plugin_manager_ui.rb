@@ -18,6 +18,8 @@ module Redcar
     
     class OpenCommand < Redcar::Command
       class Controller
+        include Redcar::HtmlController
+        
         def title
           "Plugins"
         end
@@ -32,7 +34,7 @@ module Redcar
           plugin.load
           Redcar.app.refresh_menu!
           PluginManagerUi.last_reloaded = plugin
-          1
+          nil
         end
         
         private
