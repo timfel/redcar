@@ -29,9 +29,25 @@ module Redcar
     class QuitCommand < Command
       
       def execute
+        check_for_modified_tabs_and_quit
+      end
+      
+      private
+
+      def check_for_modified_tabs_and_quit
         EditView::ModifiedTabsChecker.new(
           Redcar.app.all_tabs.select {|t| t.is_a?(EditTab)},
           "Save all before quitting?",
+          :none     => lambda { check_for_running_processes_and_quit },
+          :continue => lambda { check_for_running_processes_and_quit },
+          :cancel   => nil
+        ).check
+      end        
+      
+      def check_for_running_processes_and_quit
+        Runnables::RunningProcessChecker.new(
+          Redcar.app.all_tabs.select {|t| t.is_a?(HtmlTab)},
+          "Kill all and quit?",
           :none     => lambda { Redcar.app.quit },
           :continue => lambda { Redcar.app.quit },
           :cancel   => nil
@@ -98,6 +114,16 @@ module Redcar
         EditView::ModifiedTabsChecker.new(
           win.notebooks.map(&:tabs).flatten.select {|t| t.is_a?(EditTab)}, 
           "Save all before closing the window?",
+          :none     => lambda { check_for_running_processes_and_close_window },
+          :continue => lambda { check_for_running_processes_and_close_window },
+          :cancel   => nil
+        ).check
+      end
+      
+      def check_for_running_processes_and_close_window
+        Runnables::RunningProcessChecker.new(
+          win.notebooks.map(&:tabs).flatten.select {|t| t.is_a?(HtmlTab)}, 
+          "Kill them and close the window?",
           :none     => lambda { win.close },
           :continue => lambda { win.close },
           :cancel   => nil
@@ -235,6 +261,22 @@ module Redcar
           else
             close_tab
           end
+        elsif tab.is_a?(HtmlTab)
+          if message = tab.html_view.controller.ask_before_closing
+            result = Application::Dialog.message_box(
+              message,
+              :buttons => :yes_no_cancel
+            )
+            case result
+            when :yes
+              close_tab
+            when :no
+              close_tab
+            when :cancel
+            end
+          else
+            close_tab
+          end
         else
           close_tab
         end
@@ -264,6 +306,20 @@ module Redcar
        
       def execute
         win.focussed_notebook.switch_up
+      end
+    end
+    
+    class MoveTabUpCommand < Command
+      
+      def execute
+        win.focussed_notebook.move_up
+      end
+    end
+    
+    class MoveTabDownCommand < Command
+      
+      def execute
+        win.focussed_notebook.move_down
       end
     end
     
@@ -409,7 +465,7 @@ module Redcar
     class SelectAllCommand < Redcar::EditTabCommand
     
       def execute
-        doc.set_selection_range(doc.length, 0)
+        doc.select_all
       end
     end
     
@@ -418,6 +474,14 @@ module Redcar
       def execute
         doc.set_selection_range(
           doc.cursor_line_start_offset, doc.cursor_line_end_offset)
+      end
+    end
+    
+    class SelectWordCommand < Redcar::EditTabCommand
+
+      def execute
+        range = doc.current_word_range
+        doc.set_selection_range(range.first, range.last)
       end
     end
     
@@ -651,7 +715,9 @@ module Redcar
         link "Cmd+Shift+I", AutoIndenter::IndentCommand
         link "Cmd+L",       GotoLineCommand
         link "Cmd+F",       DocumentSearch::SearchForwardCommand
+        link "Cmd+Shift+F",           DocumentSearch::RepeatPreviousSearchForwardCommand
         link "Cmd+A",       SelectAllCommand
+        link "Ctrl+W",      SelectWordCommand
         link "Cmd+B",       ToggleBlockSelectionCommand
         #link "Escape", AutoCompleter::AutoCompleteCommand
         link "Ctrl+Escape",  AutoCompleter::MenuAutoCompleterCommand
@@ -661,6 +727,9 @@ module Redcar
         link "Cmd+Alt+O",       SwitchNotebookCommand
         link "Cmd+Shift+[",     SwitchTabDownCommand
         link "Cmd+Shift+]",     SwitchTabUpCommand
+        link "Ctrl+Shift+[",    MoveTabDownCommand
+        link "Ctrl+Shift+]",    MoveTabUpCommand
+        link "Ctrl+R",          Runnables::RunEditTabCommand
 
         link "Ctrl+Shift+P",    PrintScopeCommand
         
@@ -708,19 +777,23 @@ module Redcar
         link "Ctrl+F",       DocumentSearch::SearchForwardCommand
         link "F3",           DocumentSearch::RepeatPreviousSearchForwardCommand
         link "Ctrl+A",       SelectAllCommand
+        link "Ctrl+Alt+W",   SelectWordCommand
         link "Ctrl+B",       ToggleBlockSelectionCommand
         link "Ctrl+Space",       AutoCompleter::AutoCompleteCommand
         link "Ctrl+Shift+Space", AutoCompleter::MenuAutoCompleterCommand
         
         link "Ctrl+T",           Project::FindFileCommand
         link "Ctrl+Shift+Alt+O", MoveTabToOtherNotebookCommand
+        link "Ctrl+R",           Runnables::RunEditTabCommand
         
         link "Ctrl+Shift+P",    PrintScopeCommand
 
         link "Ctrl+Alt+O",       SwitchNotebookCommand
         
-        link "Ctrl+Page Up",       SwitchTabDownCommand
-        link "Ctrl+Page Down",     SwitchTabUpCommand
+        link "Ctrl+Page Up",         SwitchTabDownCommand
+        link "Ctrl+Page Down",       SwitchTabUpCommand
+        link "Ctrl+Shift+Page Up",   MoveTabDownCommand
+        link "Ctrl+Shift+Page Down", MoveTabUpCommand
         link "Ctrl+Shift+R",     PluginManagerUi::ReloadLastReloadedCommand
         
         link "Ctrl+Alt+S", Snippets::OpenSnippetExplorer
@@ -785,6 +858,7 @@ module Redcar
           sub_menu "Select" do
             item "All", SelectAllCommand
             item "Line", SelectLineCommand
+            item "Current Word", SelectWordCommand
           end
           item "Toggle Block Selection", ToggleBlockSelectionCommand
           item "Auto Complete",          AutoCompleter::AutoCompleteCommand
@@ -795,6 +869,7 @@ module Redcar
           item "Refresh Directory", Project::RefreshDirectoryCommand
           separator
           item "Runnables", Runnables::ShowRunnables
+          item "Run Tab",   Runnables::RunEditTabCommand
         end
         sub_menu "Debug" do
           item "Task Manager", TaskManager::OpenCommand
@@ -817,6 +892,8 @@ module Redcar
           separator
           item "Previous Tab", SwitchTabDownCommand
           item "Next Tab", SwitchTabUpCommand
+          item "Move Tab Left", MoveTabDownCommand
+          item "Move Tab Right", MoveTabUpCommand
           sub_menu "Switch Tab" do
              (1..9).each do |num|
                item "Tab #{num}", Top.const_get("SelectTab#{num}Command")
