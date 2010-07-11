@@ -1,22 +1,24 @@
 #!/usr/bin/env ruby
-
+require 'pathname'
+$LOAD_PATH.unshift File.expand_path("../lib", Pathname(__FILE__).realpath)
 $VERBOSE = true if ARGV.find{|arg| arg == '--verbose'}
-require File.join(File.dirname(__FILE__), %w(.. lib redcar_quick_start))
+require 'redcar_quick_start'
 
 if ARGV.first == "install"
-  require File.join(File.dirname(__FILE__), %w(.. lib redcar))
+  require 'redcar'
   require 'redcar/installer'
+  Redcar.environment = :user
   installer = Redcar::Installer.new
   installer.install
 elsif ARGV.first == '--associate_with_any_right_click'
-  require File.join(File.dirname(__FILE__), %w(.. lib redcar))
+  require 'redcar'
   require 'redcar/installer'
   installer = Redcar::Installer.new
   installer.associate_with_any_right_click
 else
   Redcar.read_stdin
   exit if Redcar.try_to_load_via_drb
-  require File.join(File.dirname(__FILE__), %w(.. lib redcar))
+  require 'redcar'
   Redcar.spin_up
   Redcar.environment = :user
   Redcar.load
