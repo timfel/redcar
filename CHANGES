@@ -1,6 +1,50 @@
 
-Version 0.3.8 (TBA)
+Version 0.3.9 (TBA)
 ===================
+
+ * Clojure REPL (David Byrne)
+ * Remote edit files (Felipe Coury)
+ * Remote directory view (Felipe Coury)
+ * Connection manager (Felipe Coury)
+ * Fix crashing bug when exceptions have no message (Kieran Pilkington)
+ * Runnables tab shows name of process (Delisa Mason)
+ * Runnables can run in background without visible feedback (Delisa Mason)
+ * Runnables run with cwd of your project directory, rather than redcar's cwd (Delisa Mason)
+ * Search and Replace in tab command (William Cherry)
+ * Reload file command (Kurt Werle)
+ * Fixed dependency list in README.md (Matthew Scharley)
+ * Show Installed Bundles command (John Wells)
+ * New API for plugins to hook into the project pane context menu (Matthew Scharley)
+ * Auto-detects private keys for remote editing with SSH (Dan Lucraft)
+ * Menu items can have a priority (Matthew Scharley)
+ * --fork option to detach from console (Matthew Scharley)
+ * Runnables are grouped by file (Delisa Mason)
+ * View keyboard shortcuts help command (Delisa Mason)
+
+Version 0.3.8.4 (24 July 2010)
+==============================
+
+ * Parse the xulrunner releases page to determine the latest. (Dan Lucraft)
+
+Version 0.3.8.3 (24 July 2010)
+==============================
+
+ * Fix installation (Dan Lucraft)
+
+Version 0.3.8.2 (22 July 2010)
+==============================
+
+ * Update xulrunner url AGAIN. (Dan Lucraft)
+
+Version 0.3.8.1 (18 July 2010)
+==============================
+
+ * Update xulrunner url to point to existing distribution. (huma- and akautm)
+ * Hack to make Rexml load invalid character correctly on 1.9.1. (huma-)
+ * Fix installer script to put openssl jar in the right place (Dan Lucraft)
+
+Version 0.3.8 (12 July 2010)
+============================
 
  * Can switch between open trees in a window (Dan Lucraft)
  * Runnables: extensible runnable tasks/build items/tests/generators for projects. (Dan Lucraft)
@@ -13,6 +57,7 @@ Version 0.3.8 (TBA)
  * New APIs: Document#current_word, Document#word_at_offset (Johannes Wollert)
  * Made the first tab open for a new install MUCH faster by generating the textmate bundle cache in the install script (Dan Lucraft)
  * Search speedbar is opened with selected text as the default search (Johannes Wollert)
+ * Helper method for executing JavaScript in the browser during controller actions (Dan Lucraft)
 
 Version 0.3.7.1 (25 Jun 2010)
 =============================

@@ -6,7 +6,7 @@ module Redcar
       doc.edit_view.add_listener(:grammar_changed, &method(:change_grammar))
       Grammar.loaded_files ||= []
     end
-      
+    
     def change_grammar(name)
       grammar_name = singleton.sanitize_grammar_name(name)
       Grammar.load_grammar
@@ -16,8 +16,10 @@ module Redcar
         grammar = Grammar.const_get(:Default)
       end
       grammar.instance_methods.each do |method|
-        singleton.send(:undef_method, method)
-        singleton.send(:define_method, method, grammar.instance_method(method))
+        if self.methods.include?(method)
+          singleton.send(:undef_method, method)
+          singleton.send(:define_method, method, grammar.instance_method(method))
+        end
       end
       self.extend grammar
     end
@@ -31,8 +33,8 @@ module Redcar
     def singleton
       class << self; self; end
     end
-	
-	  class << self
+    
+    class << self
       attr_accessor :loaded_files
       
       def load_grammar
@@ -45,12 +47,11 @@ module Redcar
           end
         end
       end
-    
+      
       def sanitize_grammar_name(name)
-        name = name.strip.gsub("+", "Plus").gsub("#", "Sharp").split(" ").inject do |result, word|
-          result << word.capitalize
-        end
-        name.gsub(/\W/, "").camelize
+        name.strip.gsub("+", "Plus").gsub("#", "Sharp").split(" ").map do |word|
+          word.camelize
+        end.join.gsub(/\W/, "")
       end
     end
   end

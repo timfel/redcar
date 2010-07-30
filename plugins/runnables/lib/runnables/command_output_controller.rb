@@ -4,12 +4,14 @@ module Redcar
     class CommandOutputController
       include Redcar::HtmlController
       
-      def initialize(cmd)
+      def initialize(path, cmd, title)
+        @path = path
         @cmd = cmd
+        @title = title
       end
       
       def title
-        "Process"
+        @title
       end
       
       def ask_before_closing
@@ -25,6 +27,29 @@ module Redcar
       end
       
       def run
+        case Redcar.platform
+        when :osx, :linux
+          run_posix
+        when :windows
+          run_windows
+        end
+      end
+      
+      def run_windows
+        @thread = Thread.new do
+          output = `cd #{@path} & #{@cmd} 2>&1`
+          html=<<-HTML
+          <div class="stdout">
+            <pre>#{output}</pre>
+          </div>
+          HTML
+          execute(<<-JAVASCRIPT)
+            $("#output").append(#{html.inspect});
+          JAVASCRIPT
+        end
+      end
+      
+      def run_posix
         @thread = Thread.new do
           sleep 1
           @shell = Session::Shell.new
@@ -49,7 +74,7 @@ module Redcar
             JAVASCRIPT
           end
           begin
-            @shell.execute(@cmd)
+            @shell.execute("cd #{@path}; " + @cmd)
           rescue => e
             puts e.class
             puts e.message
@@ -77,4 +102,3 @@ module Redcar
   end
 end
 
-#   $("#output").append("#{out.gsub("\"", "\\\"")}")

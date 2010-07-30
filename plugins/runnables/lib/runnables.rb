@@ -9,11 +9,19 @@ module Redcar
   class Runnables
     TREE_TITLE = "Runnables"
     
-    def self.run_process(command)
-      tab = Redcar.app.focussed_window.new_tab(HtmlTab)
-      controller = CommandOutputController.new(command)
-      tab.html_view.controller = controller
-      tab.focus
+    def self.run_process(path, command, title, output)
+      controller = CommandOutputController.new(path, command, title)
+      if output == "window"
+        Project::Manager.open_project_for_path(".")
+        output = "tab"
+      end
+      if output == "none"
+        controller.run
+      else
+        tab = Redcar.app.focussed_window.new_tab(HtmlTab)
+        tab.html_view.controller = controller
+        tab.focus
+      end
     end
     
     class TreeMirror
@@ -22,16 +30,19 @@ module Redcar
       def initialize(project)
         runnable_file_paths = project.config_files("runnables/*.json")
         
-        runnables = []
+        groups = {}
         runnable_file_paths.each do |path|
+          runnables = []
+          name = File.basename(path,".json")
           json = File.read(path)
           this_runnables = JSON(json)["commands"]
           runnables += this_runnables || []
+          groups[name.to_s] = runnables.to_a
         end
 
-        if runnables.any?
-          @top = runnables.map do |runnable|
-            Runnable.new(runnable["name"], runnable)
+        if groups.any?
+          @top = groups.map do |name, runnables|
+            RunnableGroup.new(name,runnables)
           end
         else
           @top = [HelpItem.new]
@@ -44,6 +55,35 @@ module Redcar
       
       def top
         @top
+      end
+    end
+    
+    class RunnableGroup
+      include Redcar::Tree::Mirror::NodeMirror
+      
+      def initialize(name,runnables)
+        @name = name
+        if runnables.any?
+          @children = runnables.map do |runnable|
+            Runnable.new(runnable["name"], runnable)
+          end
+        end
+      end
+      
+      def leaf?
+        false
+      end
+      
+      def text
+        @name
+      end
+      
+      def icon
+        :file
+      end
+      
+      def children
+        @children
       end
     end
     
@@ -86,6 +126,18 @@ module Redcar
       def command
         @info["command"]
       end
+
+      def out?
+        @info["output"]
+      end
+
+      def output
+        if out?
+          @info["output"]
+        else
+          "tab"
+        end
+      end
     end
     
     class TreeController
@@ -96,7 +148,15 @@ module Redcar
       end
       
       def activated(tree, node)
-        Runnables.run_process(node.command)
+        case node
+        when Runnable
+          Runnables.run_process(@project.home_dir, node.command, node.text, node.output)
+        when HelpItem
+          tab = Redcar.app.focussed_window.new_tab(HtmlTab)
+          tab.go_to_location("http://wiki.github.com/danlucraft/redcar/users-guide-runnables")
+          tab.title = "Runnables Help"
+          tab.focus
+        end
       end
     end
     
@@ -130,13 +190,18 @@ module Redcar
       end
       
       def execute
+        project = Project::Manager.in_window(win)        
         file_mappings.each do |file_mapping|
           regex = Regexp.new(file_mapping["regex"])
           if tab.edit_view.document.mirror.path =~ regex
             command_schema = file_mapping["command"]
+            output = file_mapping["output"]
+            if output.nil?
+	            output = "tab"
+            end
             command = command_schema.gsub("__PATH__", tab.edit_view.document.mirror.path)
             puts command
-            Runnables.run_process(command)
+            Runnables.run_process(project.home_dir,command, "Run File", output)
           end
         end
       end

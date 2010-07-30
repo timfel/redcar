@@ -1,4 +1,4 @@
-REDCAR_VERSION = "0.3.8dev"
+REDCAR_VERSION = "0.3.9dev"
 require 'rubygems'
 require 'fileutils'
 require 'spec/rake/spectask'
@@ -112,7 +112,7 @@ spec = Gem::Specification.new do |s|
   s.extra_rdoc_files  = %w(README.md)
   s.rdoc_options      = %w(--main README.md)
 
-  s.files             = %w(CHANGES LICENSE Rakefile README.md ROADMAP.md) + 
+  s.files             = %w(CHANGES LICENSE Rakefile README.md) + 
                           Dir.glob("bin/redcar") + 
                           Dir.glob("config/**/*") + 
                           remove_gitignored_files(Dir.glob("lib/**/*")) + 
@@ -145,7 +145,7 @@ to complete the installation.
 (If you installed the gem with 'sudo', you will need to run 'sudo redcar install').
 
 NB. This will download jars that Redcar needs to run from the internet. It will put
-them only into the Redcar gem directory.
+them into ~/.redcar/ and link to them in the Redcar gem.
 
 ------------------------------------------------------------------------------------
 
@@ -217,33 +217,6 @@ task :app_bundle => :build do
       resources_dir, :remove_destination => true
 end
 
-desc 'Clean up (sanitize) the Textmate files for packaging'
-task :clean_textmate do
-  # rename files to be x-platform safe
-  Dir["textmate/Bundles/*.tmbundle/*/**/*"].each do |fn|
-    if File.file?(fn)
-      bits = fn.split("/").last.split(".")[0..-2].join("_")
-      new_basename = bits.gsub(" ", "_").gsub(/[^\w_]/, "__").gsub(/\\./, "__") + File.extname(fn)
-      new_fn = File.join(File.dirname(fn), new_basename)
-      # p [fn,new_fn]
-      next if new_fn == fn
-      if File.exist?(new_fn)
-        puts "already exists #{new_fn}"
-        new_fn = File.join(File.dirname(fn), "next_" + new_basename)
-        unless File.exist?(new_fn)
-          FileUtils.mv(fn, new_fn)
-        end
-      else
-        begin
-          FileUtils.mv(fn, new_fn)
-        rescue => e
-          puts e
-        end
-      end
-    end
-  end
-end
-
 desc 'Run a watchr continuous integration daemon for the specs'
 task :run_ci do
   require 'watchr'
@@ -277,15 +250,18 @@ task :release => :gem do
   )
   
   redcar_bucket = AWS::S3::Bucket.find('redcar')
+  s3_uploads = {
+    "plugins/edit_view_swt/vendor/java-mateview.jar"       => "java-mateview-#{REDCAR_VERSION}.jar",
+    "plugins/application_swt/lib/dist/application_swt.jar" => "application_swt-#{REDCAR_VERSION}.jar",
+    "lib/openssl/lib/bcmail-jdk14-139.jar"                 => "jruby/bcmail-jdk14-139-#{REDCAR_VERSION}.jar",
+    "lib/openssl/lib/bcprov-jdk14-139.jar"                 => "jruby/bcprov-jdk14-139-#{REDCAR_VERSION}.jar",
+    "lib/openssl/lib/jopenssl.jar"                         => "jruby/jopenssl-#{REDCAR_VERSION}.jar",
+    "pkg/redcar-#{REDCAR_VERSION}.gem"                     => "redcar-#{REDCAR_VERSION}.gem"
+  }
   
-  file = "plugins/edit_view_swt/vendor/java-mateview.jar"
-  AWS::S3::S3Object.store("java-mateview-#{REDCAR_VERSION}.jar", open(file), 'redcar', :access => :public_read)
-  
-  file = "plugins/application_swt/lib/dist/application_swt.jar"
-  AWS::S3::S3Object.store("application_swt-#{REDCAR_VERSION}.jar", open(file), 'redcar', :access => :public_read)
-  
-  file = "pkg/redcar-#{REDCAR_VERSION}.gem"
-  AWS::S3::S3Object.store("redcar-#{REDCAR_VERSION}.gem", open(file), 'redcar', :access => :public_read)
+  s3_uploads.each do |source, target|
+    AWS::S3::S3Object.store(target, open(source), 'redcar', :access => :public_read)
+  end
 end
 
 namespace :redcar do
@@ -299,10 +275,16 @@ namespace :redcar do
   task :runnables do
     mkdir_p(".redcar/runnables")
     puts "Creating runnables"
+    File.open(".redcar/runnables/sync_stdout.rb", "w") do |fout|
+      fout.puts <<-RUBY
+        $stdout.sync = true
+        $stderr.sync = true
+      RUBY
+    end
     
     tasks = Rake::Task.tasks
     runnables = []
-    ruby_bin = Config::CONFIG["bindir"] + "/ruby -r#{File.dirname(__FILE__)}/plugins/runnables/lib/runnables/sync_stdout.rb " 
+    ruby_bin = Config::CONFIG["bindir"] + "/ruby -r#{File.dirname(__FILE__)}/.redcar/runnables/sync_stdout.rb " 
     tasks.each do |task|
       name = task.name.gsub(":", "/")
       command = ruby_bin + $0 + " " + task.name

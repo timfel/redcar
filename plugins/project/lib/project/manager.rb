@@ -1,9 +1,55 @@
 
-
 module Redcar
   class Project
     class Manager
-    
+
+      def self.connect_to_remote(protocol, host, user, path, private_key_files = [])
+        if protocol == "SFTP" and private_key_files.any?
+          begin
+            adapter = open_adapter(protocol, host, user, nil, private_key_files)
+            open_remote_project(adapter, path)
+          rescue Net::SSH::AuthenticationFailed
+            if pw = get_password
+              adapter = open_adapter(protocol, host, user, pw, [])
+              open_remote_project(adapter, path)
+            end
+          end
+        else
+          if pw = get_password
+            adapter = open_adapter(protocol, host, user, password, [])
+            open_remote_project(adapter, path)
+          end
+        end
+      rescue => e
+        puts "Error connecting: #{e.class}: #{e.message}"
+        puts e.backtrace
+        Application::Dialog.message_box("Error connecting: #{e.message}", :type => :error)
+      end
+      
+      def self.get_password
+        result = Redcar::Application::Dialog.input("Password", "Enter password")
+        result[:value] if result
+      end
+
+      # Opens a new Tree with a DirMirror and DirController for the given
+      # path, in a new window.
+      #
+      # @param [String] path  the path of the directory to view
+      def self.open_remote_project(adapter, path)
+        win = Redcar.app.focussed_window
+        win = Redcar.app.new_window if !win or Manager.in_window(win) 
+        project = Project.new(path, adapter)
+        project.open(win) if project.ready?
+      end
+
+      def self.open_adapter(protocol, host, user, password, private_key_files)
+        Adapters::Remote.new(protocol.downcase.to_sym, host, user, password, private_key_files)
+      rescue Errno::ECONNREFUSED
+        raise "connection refused connecting to #{host}"
+      rescue SocketError
+        raise "Cannot connect to #{host}. Error: #{$!.message}."
+      end
+      
       def self.open_projects
         Project.window_projects.values
       end
@@ -88,9 +134,9 @@ module Redcar
       #
       # @path  [String] path the path of the file to be edited
       # @param [Window] win  the Window to open the File in
-      def self.open_file_in_window(path, win)
+      def self.open_file_in_window(path, win, adapter)
         tab = win.new_tab(Redcar::EditTab)
-        mirror = FileMirror.new(path)
+        mirror = FileMirror.new(path, adapter)
         tab.edit_view.document.mirror = mirror
         tab.edit_view.reset_undo
         tab.focus
@@ -100,7 +146,7 @@ module Redcar
         open_projects.select {|project| project.contains_path?(path) }
       end
       
-      def self.open_file(path)
+      def self.open_file(path, adapter=Adapters::Local.new)
         if tab = find_open_file_tab(path)
           tab.focus
           return
@@ -112,7 +158,7 @@ module Redcar
           p [:didn_t_find_containing_project]
           window = windows_without_projects.first || Redcar.app.new_window
         end
-        open_file_in_window(path, window)
+        open_file_in_window(path, window, adapter)
         window.focus
       end
       
@@ -231,6 +277,45 @@ module Redcar
         path = File.expand_path(path)
         find_projects_containing_path(path).each do |project|
           project.refresh_modified_file(path)
+        end
+      end
+      
+      # Uses our own context menu hook to provide context menu entries
+      # @return [Menu]
+      def self.project_context_menus(tree, node, controller)
+        Menu::Builder.build do
+          group(:priority => :first) do
+            item("New File")        { controller.new_file(tree, node) }
+            item("New Directory")   { controller.new_dir(tree, node)  }
+          end
+          if not node.nil?
+            group(:priority => 15) do
+              separator
+              if tree.selection.length > 1
+                dirs = tree.selection.map {|node| node.parent_dir }
+                if dirs.uniq.length == 1
+                  item("Bulk Rename") { controller.rename(tree, node)   }
+                end
+              else
+                item("Rename")        { controller.rename(tree, node)   }
+              end
+              item("Delete")          { controller.delete(tree, node)   }
+            end
+          end
+          group(:priority => 75) do
+            separator
+            if DirMirror.show_hidden_files?
+              item("Hide Hidden Files") do
+                DirMirror.show_hidden_files = false
+                tree.refresh
+              end
+            else
+              item("Show Hidden Files") do
+                DirMirror.show_hidden_files = true
+                tree.refresh
+              end
+            end
+          end
         end
       end
           

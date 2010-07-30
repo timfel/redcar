@@ -262,7 +262,7 @@ module Redcar
             close_tab
           end
         elsif tab.is_a?(HtmlTab)
-          if message = tab.html_view.controller.ask_before_closing
+          if tab.html_view.controller and message = tab.html_view.controller.ask_before_closing
             result = Application::Dialog.message_box(
               message,
               :buttons => :yes_no_cancel
@@ -690,7 +690,9 @@ module Redcar
         link "Cmd+Shift+N", NewNotebookCommand
         link "Cmd+Alt+N",   NewWindowCommand
         link "Cmd+O",       Project::FileOpenCommand
+        link "Cmd+U",       Project::FileReloadCommand
         link "Cmd+Shift+O", Project::DirectoryOpenCommand
+        link "Cmd+Ctrl+O",  Project::OpenRemoteCommand
         link "Cmd+S",       Project::FileSaveCommand
         link "Cmd+Shift+S", Project::FileSaveAsCommand
         link "Cmd+Ctrl+R",  Project::RevealInProjectCommand
@@ -752,6 +754,7 @@ module Redcar
         link "Ctrl+Alt+N",   NewWindowCommand
         link "Ctrl+O",       Project::FileOpenCommand
         link "Ctrl+Shift+O", Project::DirectoryOpenCommand
+        link "Alt+Shift+O",  Project::OpenRemoteCommand
         link "Ctrl+S",       Project::FileSaveCommand
         link "Ctrl+Shift+S", Project::FileSaveAsCommand
         link "Ctrl+Shift+R", Project::RevealInProjectCommand
@@ -817,7 +820,9 @@ module Redcar
           item "New", NewCommand
           item "New Window", NewWindowCommand
           item "Open", Project::FileOpenCommand
+          item "Reload File", Project::FileReloadCommand
           item "Open Directory", Project::DirectoryOpenCommand
+          item "Open Remote...", Project::OpenRemoteCommand
           lazy_sub_menu "Open Recent" do
             Project::RecentDirectories.generate_menu(self)
           end
@@ -915,6 +920,7 @@ module Redcar
         end
         sub_menu "Bundles" do
           item "Find Snippet", Snippets::OpenSnippetExplorer
+          item "Installed Bundles", Textmate::InstalledBundles
           separator
           Textmate.attach_menus(self)
         end
