@@ -734,6 +734,7 @@ module Redcar
         link "Ctrl+Shift+[",    MoveTabDownCommand
         link "Ctrl+Shift+]",    MoveTabUpCommand
         link "Ctrl+R",          Runnables::RunEditTabCommand
+        link "Cmd+I",           OutlineView::OpenOutlineViewCommand
 
         link "Ctrl+Shift+P",    PrintScopeCommand
         
@@ -801,6 +802,7 @@ module Redcar
         link "Ctrl+Shift+Page Up",   MoveTabDownCommand
         link "Ctrl+Shift+Page Down", MoveTabUpCommand
         link "Ctrl+Shift+R",     PluginManagerUi::ReloadLastReloadedCommand
+        link "Ctrl+I",           OutlineView::OpenOutlineViewCommand
         
         link "Ctrl+Alt+S", Snippets::OpenSnippetExplorer
         #Textmate.attach_keybindings(self, :linux)
@@ -865,6 +867,15 @@ module Redcar
           item "Toggle Block Selection", ToggleBlockSelectionCommand
           item "Auto Complete",          AutoCompleter::AutoCompleteCommand
           item "Menu Auto Complete",     AutoCompleter::MenuAutoCompleterCommand
+        end
+        sub_menu "Project" do
+          item "Find File", Project::FindFileCommand
+          item "Refresh Directory", Project::RefreshDirectoryCommand
+          separator
+          item "Runnables", Runnables::ShowRunnables
+          item "Run Tab",   Runnables::RunEditTabCommand
+          separator
+          item "Current Outline", OutlineView::OpenOutlineViewCommand
         end
         sub_menu "Debug", :priority => 20 do
           item "Task Manager", TaskManager::OpenCommand
