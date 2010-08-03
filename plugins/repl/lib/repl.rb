@@ -35,6 +35,7 @@ module Redcar
             item "Open Ruby REPL",    REPL::RubyOpenREPL
             item "Open Clojure REPL", REPL::ClojureOpenREPL
             item "Execute", REPL::CommitREPL
+            item "Clear History", REPL::ClearHistoryREPL
           end
         end
       end
@@ -44,22 +45,28 @@ module Redcar
       
       def open_repl mirror
         tab = win.new_tab(Redcar::EditTab)
-        edit_view = tab.edit_view
+        edit_view = tab.edit_view  
         edit_view.document.mirror = mirror
         edit_view.cursor_offset = edit_view.document.length
         tab.focus
+        
+        mirror.add_listener(:change) do
+          edit_view.cursor_offset = edit_view.document.length
+          edit_view.scroll_to_line(edit_view.document.line_count)
+        end
+        
       end
     end
 
     class RubyOpenREPL < OpenREPL
       def execute
-        open_repl RubyMirror.new win
+        open_repl RubyMirror.new
       end
     end
     
     class ClojureOpenREPL < OpenREPL
       def execute
-        open_repl ClojureMirror.new win
+        open_repl ClojureMirror.new
       end
     end
     
@@ -74,6 +81,15 @@ module Redcar
         edit_view.document.save!
       end
     end
+    
+    class ClearHistoryREPL < ReplCommand
+      
+      def execute
+        mirror = win.focussed_notebook.focussed_tab.edit_view.document.mirror
+        mirror.clear_history
+      end
+    end
+    
   end
 end
 
