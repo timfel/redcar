@@ -206,8 +206,12 @@ task :app_bundle => :build do
   File.chmod 0777, File.join(macos_dir, "redcar")
 
   spec.files.each do |f|
-    FileUtils.mkdir_p File.join(resources_dir, File.dirname(f))
-    FileUtils.cp_r f, File.join(resources_dir, f), :remove_destination => true
+    begin
+      FileUtils.mkdir_p File.join(resources_dir, File.dirname(f))
+      FileUtils.cp_r f, File.join(resources_dir, f), :remove_destination => true
+    rescue Exception
+      # This happens sometimes with strange files
+    end
   end
 
   p "Running #{File.join(resources_dir, "bin", "redcar")} install"
