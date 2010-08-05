@@ -725,7 +725,9 @@ module Redcar
         link "Cmd+B",       ToggleBlockSelectionCommand
         #link "Escape", AutoCompleter::AutoCompleteCommand
         link "Ctrl+Escape",  AutoCompleter::MenuAutoCompleterCommand
-        
+        link "Ctrl+U",       EditView::UpcaseTextCommand
+        link "Ctrl+Shift+U", EditView::DowncaseTextCommand
+
         link "Cmd+T",           Project::FindFileCommand
         link "Cmd+Shift+Alt+O", MoveTabToOtherNotebookCommand
         link "Cmd+Alt+O",       SwitchNotebookCommand
@@ -788,7 +790,9 @@ module Redcar
         link "Ctrl+B",       ToggleBlockSelectionCommand
         link "Ctrl+Space",       AutoCompleter::AutoCompleteCommand
         link "Ctrl+Shift+Space", AutoCompleter::MenuAutoCompleterCommand
-        
+        link "Ctrl+U",       EditView::UpcaseTextCommand
+        link "Ctrl+Shift+U", EditView::DowncaseTextCommand
+
         link "Ctrl+T",           Project::FindFileCommand
         link "Ctrl+Shift+Alt+O", MoveTabToOtherNotebookCommand
         link "Ctrl+R",           Runnables::RunEditTabCommand
@@ -867,6 +871,9 @@ module Redcar
           item "Toggle Block Selection", ToggleBlockSelectionCommand
           item "Auto Complete",          AutoCompleter::AutoCompleteCommand
           item "Menu Auto Complete",     AutoCompleter::MenuAutoCompleterCommand
+          separator
+          item "Upcase Text",   EditView::UpcaseTextCommand
+          item "Downcase Text", EditView::DowncaseTextCommand
         end
         sub_menu "Project" do
           item "Find File", Project::FindFileCommand
