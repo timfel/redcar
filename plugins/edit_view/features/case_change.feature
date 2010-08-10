@@ -3,11 +3,17 @@ Feature: Change Case
   Background:
     When I open a new edit tab
 
-  Scenario: Upcase text
+  Scenario: Upcase selected text
+    When I replace the contents with "Curry Chicken"
+    And I select from 5 to 0
+    And I run the command Redcar::EditView::UpcaseTextCommand
+    Then the contents should be "<s>CURRY<c> Chicken"
+
+  Scenario: Upcase selected text and preserve cursor position
     When I replace the contents with "Curry Chicken"
     And I select from 0 to 5
     And I run the command Redcar::EditView::UpcaseTextCommand
-    Then the contents should be "CURRY Chicken"
+    Then the contents should be "<c>CURRY<s> Chicken"
 
   Scenario: Upcase word if no selection
     When I replace the contents with "Curry Chicken"

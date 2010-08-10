@@ -524,11 +524,22 @@ module Redcar
     #
     #     replace_selection {|current_text| current_text.upcase }
     def replace_selection(new_text=nil)
+      previous_cursor_offset = cursor_offset
+      
       sr = selection_range
       start_offset    = sr.first
       end_offset      = sr.last
       new_text        = new_text || yield(selected_text)
+
       replace(start_offset, end_offset - start_offset, new_text)
+
+      new_end_offset = start_offset + new_text.length
+      
+      if previous_cursor_offset == end_offset
+        self.set_selection_range(new_end_offset, start_offset)
+      else
+        self.set_selection_range(start_offset, new_end_offset)
+      end
     end
     
     # Replace the current word. This has two modes. In the first, 
