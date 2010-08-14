@@ -287,7 +287,7 @@ module Redcar
               item "Open", Project::FileOpenCommand
               item "Reload File", Project::FileReloadCommand
               item "Open Directory", Project::DirectoryOpenCommand
-              item "Open Remote...", Project::OpenRemoteCommand
+              #item "Open Remote...", Project::OpenRemoteCommand
               lazy_sub_menu "Open Recent" do
                 Project::RecentDirectories.generate_menu(self)
               end
@@ -324,7 +324,7 @@ module Redcar
               separator
               if tree.selection.length > 1
                 dirs = tree.selection.map {|node| node.parent_dir }
-                if dirs.uniq.length == 1
+                if dirs.uniq.length == 1 and node.adapter.is_a?(Adapters::Local)
                   item("Bulk Rename") { controller.rename(tree, node)   }
                 end
               else

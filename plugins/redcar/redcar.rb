@@ -715,7 +715,7 @@ module Redcar
         link "Cmd+O",       Project::FileOpenCommand
         link "Cmd+U",       Project::FileReloadCommand
         link "Cmd+Shift+O", Project::DirectoryOpenCommand
-        link "Cmd+Ctrl+O",  Project::OpenRemoteCommand
+        #link "Cmd+Ctrl+O",  Project::OpenRemoteCommand
         link "Cmd+S",       Project::FileSaveCommand
         link "Cmd+Shift+S", Project::FileSaveAsCommand
         link "Cmd+Ctrl+R",  Project::RevealInProjectCommand
@@ -764,6 +764,7 @@ module Redcar
         link "Ctrl+Shift+]",    MoveTabUpCommand
         link "Ctrl+R",          Runnables::RunEditTabCommand
         link "Cmd+I",           OutlineView::OpenOutlineViewCommand
+        link "Cmd+Alt+I",       ToggleInvisibles
 
         link "Ctrl+Shift+P",    PrintScopeCommand
         
@@ -785,7 +786,7 @@ module Redcar
         link "Ctrl+Alt+N",   NewWindowCommand
         link "Ctrl+O",       Project::FileOpenCommand
         link "Ctrl+Shift+O", Project::DirectoryOpenCommand
-        link "Alt+Shift+O",  Project::OpenRemoteCommand
+        #link "Alt+Shift+O",  Project::OpenRemoteCommand
         link "Ctrl+S",       Project::FileSaveCommand
         link "Ctrl+Shift+S", Project::FileSaveAsCommand
         link "Ctrl+Shift+R", Project::RevealInProjectCommand
@@ -839,6 +840,8 @@ module Redcar
         link "Ctrl+Shift+R",     PluginManagerUi::ReloadLastReloadedCommand
         link "Ctrl+I",           OutlineView::OpenOutlineViewCommand
         
+        link "Ctrl+Alt+I",       ToggleInvisibles
+
         link "Ctrl+Alt+S", Snippets::OpenSnippetExplorer
         #Textmate.attach_keybindings(self, :linux)
 
