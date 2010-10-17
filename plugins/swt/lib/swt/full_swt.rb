@@ -14,6 +14,7 @@ module Swt
     import org.eclipse.swt.widgets.Menu
     import org.eclipse.swt.widgets.MenuItem
     import org.eclipse.swt.widgets.MessageBox
+    import org.eclipse.swt.widgets.MessageBox
     import org.eclipse.swt.widgets.ToolBar
     import org.eclipse.swt.widgets.ToolItem
     import org.eclipse.swt.widgets.CoolBar
@@ -120,6 +121,7 @@ module JFace
   module Dialogs
     import org.eclipse.jface.dialogs.Dialog
     import org.eclipse.jface.dialogs.InputDialog
+    import org.eclipse.jface.dialogs.MessageDialog
   end
 end
 

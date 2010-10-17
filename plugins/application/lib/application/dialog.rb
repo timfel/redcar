@@ -43,9 +43,6 @@ module Redcar
       # >>                                        :buttons => :yes_no_cancel)
       # => :yes
       def self.message_box(text, options={})
-        if buttons = options[:buttons] and !available_message_box_button_combos.include?(buttons)
-          raise "option :buttons must be in #{available_message_box_button_combos.inspect}"
-        end
         if type = options[:type] and !available_message_box_types.include?(type)
           raise "option :type must be in #{available_message_box_button_types.inspect}"
         end

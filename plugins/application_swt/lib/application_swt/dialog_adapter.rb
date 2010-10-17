@@ -14,58 +14,37 @@ module Redcar
       end
       
       MESSAGE_BOX_TYPES = {
-        :info     => Swt::SWT::ICON_INFORMATION,
-        :error    => Swt::SWT::ICON_ERROR,
-        :question => Swt::SWT::ICON_QUESTION,
-        :warning  => Swt::SWT::ICON_WARNING,
-        :working  => Swt::SWT::ICON_WORKING
+        :info     => JFace::Dialogs::MessageDialog::INFORMATION,
+        :error    => JFace::Dialogs::MessageDialog::ERROR,
+        :question => JFace::Dialogs::MessageDialog::QUESTION,
+        :warning  => JFace::Dialogs::MessageDialog::WARNING,
+        :working  => JFace::Dialogs::MessageDialog::NONE
       }
       
-      BUTTONS = {
-        :yes    => Swt::SWT::YES,
-        :no     => Swt::SWT::NO,
-        :cancel => Swt::SWT::CANCEL,
-        :retry  => Swt::SWT::RETRY,
-        :ok     => Swt::SWT::OK,
-        :abort  => Swt::SWT::ABORT,
-        :ignore => Swt::SWT::IGNORE
-      }
-      
-      MESSAGE_BOX_BUTTON_COMBOS = {
-        :ok                 => [:ok],
-        :ok_cancel          => [:ok, :cancel],
-        :yes_no             => [:yes, :no], 
-        :yes_no_cancel      => [:yes, :no, :cancel],
-        :retry_cancel       => [:retry, :cancel],
-        :abort_retry_ignore => [:abort, :retry, :ignore]
-      }
+      BUTTONS = Hash.new do |h,k|
+        h[k] = case k
+          when Array then k.collect(&:to_s)
+          when Symbol then k.to_s.split("_")
+          else nil
+        end
+      end
       
       def message_box(text, options)
-        styles = 0
-        styles = styles | MESSAGE_BOX_TYPES[options[:type]] if options[:type]
-        if options[:buttons]
-          buttons = MESSAGE_BOX_BUTTON_COMBOS[options[:buttons]]
-          buttons.each {|b| styles = styles | BUTTONS[b] }
-        end
-        dialog = Swt::Widgets::MessageBox.new(parent_shell, styles)
-        dialog.set_message(text)
+        style = Swt::SWT::SHEET
+        icon = MESSAGE_BOX_TYPES[options[:type] || :working]
+        buttons = BUTTONS[options[:buttons] || [:ok]]
+        
+        dialog = JFace::Dialogs::MessageDialog.new(parent_shell, nil, nil, text, icon,
+            buttons.collect(&:capitalize).to_java(:string), 0)
         result = nil
         Redcar.app.protect_application_focus do
           result = dialog.open
         end
-        BUTTONS.invert[result]
-      end
-      
-      def buttons
-        BUTTONS.keys
+        buttons[result].to_sym
       end
       
       def available_message_box_types
         MESSAGE_BOX_TYPES.keys
-      end
-      
-      def available_message_box_button_combos
-        MESSAGE_BOX_BUTTON_COMBOS.keys
       end
       
       def input(title, message, initial_value, &block)
