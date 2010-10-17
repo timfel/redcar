@@ -51,9 +51,20 @@ module Redcar
 
   module Top
     class QuitCommand < Command
+      DIALOG_BUTTONS = [:"Close window", :"Quit Redcar", :"Cancel"]
 
       def execute
-        check_for_modified_tabs_and_quit
+        if Redcar.app.windows.any?
+          case Application::Dialog.message_box("Just close the window or really quit Redcar?\n",
+            :buttons => DIALOG_BUTTONS, :type => :question)
+          when DIALOG_BUTTONS.first
+            CloseWindowCommand.new.run
+          when DIALOG_BUTTONS[1]
+            check_for_modified_tabs_and_quit
+          end
+        else
+          Redcar.app.quit
+        end
       end
 
       private
