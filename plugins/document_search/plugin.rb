@@ -4,5 +4,5 @@ Plugin.define do
   version "1.0"
   file    "lib", "document_search"
   object  "DocumentSearch"
-  dependencies "edit_view", ">0"
+  dependencies "edit_view", ">0", "application_swt", ">0"
 end

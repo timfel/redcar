@@ -142,7 +142,6 @@ module Redcar
     load_prerequisites
     thread = Thread.new do
       load_plugins
-      Redcar::Top.start(ARGV)
     end
     if no_gui_mode?
       thread.join
@@ -166,11 +165,11 @@ module Redcar
     return if Redcar.no_gui_mode?
     
     Swt.create_splash_screen(plugin_manager.plugins.length + 10)
-    plugin_manager.on_load do |plugin|
-      Swt.sync_exec do
-        Swt.splash_screen.inc
-      end
-    end
+    # plugin_manager.on_load do |plugin|
+    #   Swt.sync_exec do
+    #     Swt.splash_screen.inc
+    #   end
+    # end
   end
 
   ## Starts the GUI.

@@ -1137,3 +1137,5 @@ Redcar.environment: #{Redcar.environment}
     end
   end
 end
+
+Redcar::Top.start(ARGV)

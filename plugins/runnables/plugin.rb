@@ -6,5 +6,6 @@ Plugin.define do
   object  "Redcar::Runnables"
   dependencies "tree",        ">0",
                "application", ">=1.1",
-               "HTML View",   ">0"
+               "HTML View",   ">0",
+               "project", ">0"
 end

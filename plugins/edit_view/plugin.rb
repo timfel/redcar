@@ -5,5 +5,6 @@ Plugin.define do
   file    "lib", "edit_view"
   object  "Redcar::EditView"
   dependencies "core", ">0",
-               "application", ">0"
+               "application", ">0",
+               "application_swt", ">0"
 end
