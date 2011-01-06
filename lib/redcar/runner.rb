@@ -72,7 +72,7 @@ module Redcar
       command.push "--debug" if debug_mode?
       command.push(bin)
       command.push(*cleaned_args)
-      command.push("--no-sub-jruby", "--ignore-stdin")
+      command.push("--1.9 --no-sub-jruby", "--ignore-stdin")
       command.push(*args)
       
       puts command.join(' ')
